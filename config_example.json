@@ -1,0 +1,23 @@
+{
+  "gandi": {
+    "apiKey": "<GANDI API KEY>"
+  },
+  "zones": [
+    {
+      "domain": "<Full domain including subdomain>",
+      "source": "sonicwall",
+      "interface": "X1",
+      "ttl": 10800
+    },
+    {
+      "domain": "<Full domain including subdomain>",
+      "source": "public",
+      "ttl": 10800
+    }
+  ],
+  "sonicwall": {
+    "host": "<sonicwall ip or hostname>",
+    "username": "<sonicwall username>",
+    "password": "<sonicwall password>"
+  }
+}
