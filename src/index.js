@@ -13,13 +13,14 @@ async function updateZones() {
   let count = 0;
   let updatedCount = 0;
   let failedCount = 0;
+
   // We execute the zones one by one to avoid duplicate requests for getting
   // public ips, records etc. It also makes the log easier to understand
   for (const zone of config.zones) {
     count++;
-    const { source, interface } = zone;
+    const { source, interface, ttl } = zone;
     const domain = zone.domain.split('.').slice(-2).join('.');
-    const subDomain = zone.domain.split('.').slice(0, -2).join('.');
+    const subDomain = zone.domain.split('.').slice(0, -2).join('.') || '@';
 
     log.info(`[${zone.domain}]: Processing zone`);
 
@@ -28,31 +29,40 @@ async function updateZones() {
         throw new Error(`[${zone.domain}]: No source for zone`);
       }
   
-      let currentIp;
+      let newIp;
   
       if (source === 'public') {
-        currentIp = await public.getIp();
+        newIp = await public.getIp();
       } else if (source === 'sonicwall') {
-        currentIp = await sonicwall.getIp(interface);
+        newIp = await sonicwall.getIp(interface);
       } else {
         throw new Error(`Source not supported: ${source}`);
       }
   
-      const oldIp = await gandi.getRecord(domain, subDomain);
+      const currentIp = await gandi.getRecord(domain, subDomain);
   
-      if (oldIp === currentIp) {
+      if (currentIp === newIp) {
         log.info(`[${zone.domain}]: Ip has not changed, no action required`);
         continue;
       } else {
-        log.info(`[${zone.domain}]: Ip has changed, old value: ${oldIp}`);
+        log.info(`[${zone.domain}]: Ip has changed, old value: ${currentIp}`);
 
-        await gandi.setRecord(domain, subDomain, currentIp);
+        await gandi.setRecord(domain, subDomain, newIp, ttl);
   
         updatedCount++;
-        log.info(`[${zone.domain}]: Updated record to new ip: ${currentIp}`);
+        log.info(`[${zone.domain}]: Updated record to new ip: ${newIp}`);
       }
 
     } catch (err) {
+      // Filter out secrets, we should move this to the logger and make it more generic
+      if (err && err.config && err.config) {
+        if (err.config.headers && err.config.headers['X-Api-Key']) {
+          err.config.headers['X-Api-Key'] = '[REDACTED]';
+        }
+        if (err.config.auth && err.config.auth.password) {
+          err.config.auth.password = '[REDACTED]';
+        }
+      }
       log.error(err);
       log.error(`[${zone.domain}]: Failed to update`);
       failedCount++;

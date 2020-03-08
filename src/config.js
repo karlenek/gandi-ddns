@@ -15,6 +15,23 @@ convict.addFormat({
   }
 });
 
+convict.addFormat({
+  name: 'dns-ttl',
+  validate: function(val, schema) {
+    if (!Number.isInteger(val)) {
+      throw new Error('must be an Integer');
+    }
+
+    if (val < 300) {
+      throw new Error('must not be less than 300');
+    }
+
+    if (val > 2592000) {
+      throw new Error('must not be more than 2592000');
+    }
+  }
+});
+
 const config = convict({
   interval: {
     format: 'Number',
@@ -58,7 +75,11 @@ const config = convict({
       interface: {
         format: 'String',
         default: '',
-      }
+      },
+      ttl: {
+        format: 'dns-ttl',
+        default: 10800,
+      },
     },
   },
   public: {

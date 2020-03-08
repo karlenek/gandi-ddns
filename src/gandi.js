@@ -15,7 +15,7 @@ function createClient() {
     baseURL: config.gandi.host,
     headers: {
       'X-Api-Key': config.gandi.apiKey,
-    }
+    },
   });
 
   return client;
@@ -49,21 +49,16 @@ async function getRecord(domain, subDomain) {
   return value;
 }
 
-async function setRecord(domain, subDomain, newIp) {
-  const client = axios.create({
-    baseURL: config.gandi.host,
-    headers: {
-      'X-Api-Key': config.gandi.apiKey,
-    }
-  });
-
+async function setRecord(domain, subDomain, newIp, ttl = 10800) {
   await client.put(`domains/${domain}/records/${subDomain}/A`, {
-    'rrset_values': [newIp]
+    'rrset_values': [newIp],
+    'rrset_type': 'A',
+    'rrset_ttl': ttl,
   });
 
   cache.clearValue(getCacheKey(domain, subDomain));
 
-  return;
+  return true;
 }
 
 module.exports = {
