@@ -59,6 +59,9 @@ async function updateZones() {
         if (err.config.headers && err.config.headers['X-Api-Key']) {
           err.config.headers['X-Api-Key'] = '[REDACTED]';
         }
+        if (err.config.httpsAgent) {
+          err.config.httpsAgent = '[FILTERED]';
+        }
         if (err.config.auth && err.config.auth.password) {
           err.config.auth.password = '[REDACTED]';
         }

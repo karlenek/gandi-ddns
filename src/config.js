@@ -102,6 +102,11 @@ const config = convict({
       default: '',
       sensitive: true,
     },
+    ca: {
+      format: 'String',
+      default: '',
+      sensitive: true,
+    },
   },
 });
 

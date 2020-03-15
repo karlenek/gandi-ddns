@@ -1,4 +1,7 @@
 const axios = require('axios');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
 const { sonicwall } = require('../config');
 const log = require('../logger');
@@ -6,7 +9,7 @@ const cache = require('../cache');
 
 
 class Client {
-  constructor(baseUrl, auth) {
+  constructor(baseUrl, auth, caPath) {
     this.baseUrl = baseUrl;
 
     if (auth) {
@@ -15,8 +18,17 @@ class Client {
         password: auth.password,
       }
     }
-    // TEMPORARY, we need to add the firewall cert to here
-    process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
+    if (caPath) {
+      let relPath = caPath;
+
+      if (!relPath.match(/^\//)) {
+        relPath = path.join(__dirname, '../../', caPath);
+      }
+
+      const cert = fs.readFileSync(relPath);
+      this.httpsAgent = new https.Agent({ ca: cert, keepAlive: false });
+    }
   }
 
   getFullUrl(path) {
@@ -27,6 +39,7 @@ class Client {
     const resp = await axios({
       method: 'GET',
       url: this.getFullUrl(path),
+      httpsAgent: this.httpsAgent ? this.httpsAgent : undefined,
     });
 
     return resp.data;
@@ -36,6 +49,7 @@ class Client {
     const resp = await axios({
       method: 'POST',
       url: this.getFullUrl(path),
+      httpsAgent: this.httpsAgent ? this.httpsAgent : undefined,
       auth: this.auth,
     });
 
@@ -46,7 +60,7 @@ class Client {
 const client = new Client(`https://${sonicwall.host}/api/sonicos/`, {
   username: sonicwall.username,
   password: sonicwall.password,
-});
+}, sonicwall.ca);
 
 
 async function login() {
