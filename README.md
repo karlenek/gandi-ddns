@@ -54,12 +54,24 @@ npm run dev
 
 
 ## Deployment
-TODO
-Add additional notes about how to deploy this on a live system
+The application is easiest deployed with docker.
+
+Setup your configuration file and start the application with docker compose or docker command.
+
+#### Docker CLI
+```
+docker run -d --restart=always -v $(pwd)/config.json:/app/config.json karlenek/gandi-ddns:latest
+```
+
+#### Docker compose
+Copy the docker-compose.yaml in the root folder of this repository and run:
+```
+docker-compose up -d
+```
 
 ## Notes
 TODO
-ttl will only update when ip changes
+- ttl will only update when ip changes
 
 
 ## Authors
