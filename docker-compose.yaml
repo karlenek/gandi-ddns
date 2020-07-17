@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  gandi-ddns:
+    image: karlenek/gandi-ddns:latest
+    restart: always
+    volumes:
+      - ./config.json:/app/config.json
