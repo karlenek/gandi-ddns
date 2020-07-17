@@ -33,6 +33,11 @@ convict.addFormat({
 });
 
 const config = convict({
+  configPath: {
+    format: 'String',
+    default: './config.json',
+    env: 'CONFIG_PATH',
+  },
   interval: {
     format: 'Number',
     default: 15, // in minutes
@@ -110,7 +115,7 @@ const config = convict({
   },
 });
 
-const configPath = join(__dirname, '../config.json');
+const configPath = join(__dirname, '../', config.get('configPath'));
 
 if (existsSync(configPath)) {
   try {
